@@ -1,7 +1,19 @@
 <?php
+session_start();
 include '../config/koneksi.php';
 
-$id = $_GET['id'];
+// Cek jika user sudah login
+if (!isset($_SESSION['nip'])) {
+    die("Akses ditolak. Silakan login terlebih dahulu.");
+}
+
+$nip = $_SESSION['nip'];
+
+$id = $_GET['id'] ?? null;
+
+if (!$id) {
+    die("ID dokumen tidak valid.");
+}
 
 $query = mysqli_query($conn, "SELECT * FROM dokumen WHERE id = '$id'");
 $data = mysqli_fetch_assoc($query);
@@ -10,9 +22,9 @@ if (!$data) {
     die("Dokumen tidak ditemukan.");
 }
 
-$file_name = $data['nama_dokumen'];
-$file_path = '../assetss/img/dokumen/' . $file_name;
-$ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+$nama_dokumen = $data['nama_dokumen'];
+$file_path = '../assetss/img/dokumen/' . $nama_dokumen;
+$ext = strtolower(pathinfo($nama_dokumen, PATHINFO_EXTENSION));
 
 if (!file_exists($file_path)) {
     die("File tidak ditemukan.");
@@ -24,6 +36,8 @@ if (!in_array($ext, $allowed)) {
 }
 
 $mime = mime_content_type($file_path);
+
+mysqli_query($conn, "INSERT INTO log_dokumen (nip, nama_dokumen, aksi) VALUES ('$nip', '$nama_dokumen', 'lihat')");
 
 $download_only = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 

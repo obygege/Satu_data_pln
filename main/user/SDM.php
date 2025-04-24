@@ -170,9 +170,10 @@ $totalPages = ceil($totalDocs / $perPage);
                                                                         <td><?= htmlspecialchars($doc['bidang']) ?></td>
                                                                         <td><?= htmlspecialchars($doc['keterangan']) ?></td>
                                                                         <td>
-                                                                            <a href="../../proses/lihat_dokumen.php?id=<?= $doc['id'] ?>" class="btn btn-primary btn-sm">
+                                                                            <a href="../../proses/lihat_dokumen.php?id=<?= $doc['id'] ?>&nama_dokumen=<?= urlencode($doc['nama_dokumen']) ?>" class="btn btn-primary btn-sm">
                                                                                 <i class="fas fa-eye"></i> Lihat
                                                                             </a>
+
                                                                         </td>
                                                                     </tr>
                                                             <?php

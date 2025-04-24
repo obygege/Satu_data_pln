@@ -1,70 +1,52 @@
 <?php
 session_start();
-include('sessilogin.php');  // Pastikan file ini berisi session yang valid
-include("../../config/koneksi.php");  // Sesuaikan dengan lokasi file koneksi database Anda
+include('sessilogin.php'); 
+include("../../config/koneksi.php"); 
 
-// Pastikan NIP sudah diset saat login
 if (!isset($_SESSION['nip'])) {
     die('NIP belum terdaftar.');
 }
-$nip = $_SESSION['nip'];  // Ambil NIP pengguna yang sedang login
+$nip = $_SESSION['nip'];
 
-// Inisialisasi variabel untuk nama pengguna dan total dokumen
-$nama_user = '';  // Inisialisasi variabel nama_user
+$nama_user = '';
 $total_dokumen = 0;
 $total_dokumen_keseluruhan = 0;
 $growth_percentage = 0;
 
 try {
-    // Query untuk mengambil nama pengguna berdasarkan NIP dari tabel users
+    // Ambil nama user
     $sql_user = "SELECT nama FROM users WHERE nip = ?";
     $stmt_user = $conn->prepare($sql_user);
-    $stmt_user->bind_param('s', $nip);  // Binding NIP ke parameter
+    $stmt_user->bind_param('s', $nip);
     $stmt_user->execute();
     $result_user = $stmt_user->get_result();
+    $nama_user = ($result_user->num_rows > 0) ? $result_user->fetch_assoc()['nama'] : "Pengguna tidak ditemukan";
 
-    // Cek apakah query berhasil dan hasilnya ada
-    if ($result_user->num_rows > 0) {
-        $row_user = $result_user->fetch_assoc();
-        $nama_user = $row_user['nama'];  // Set nama pengguna ke variabel $nama_user
-    } else {
-        $nama_user = "Pengguna tidak ditemukan";  // Jika tidak ada data
-    }
-
-    // Query untuk menghitung total dokumen yang di-upload oleh pengguna
+    // Total dokumen user
     $sql_dokumen = "SELECT COUNT(*) AS total_dokumen FROM dokumen WHERE nip = ?";
     $stmt_dokumen = $conn->prepare($sql_dokumen);
     $stmt_dokumen->bind_param('s', $nip);
     $stmt_dokumen->execute();
-    $result_dokumen = $stmt_dokumen->get_result();
-    $total_dokumen = $result_dokumen->fetch_assoc()['total_dokumen'];
+    $total_dokumen = $stmt_dokumen->get_result()->fetch_assoc()['total_dokumen'];
 
-    // Query untuk menghitung jumlah total dokumen keseluruhan
+    // Total dokumen keseluruhan
     $sql_dokumen_keseluruhan = "SELECT COUNT(*) AS total_dokumen_keseluruhan FROM dokumen";
-    $stmt_dokumen_keseluruhan = $conn->prepare($sql_dokumen_keseluruhan);
-    $stmt_dokumen_keseluruhan->execute();
-    $result_dokumen_keseluruhan = $stmt_dokumen_keseluruhan->get_result();
-    $total_dokumen_keseluruhan = $result_dokumen_keseluruhan->fetch_assoc()['total_dokumen_keseluruhan'];
+    $stmt_keseluruhan = $conn->prepare($sql_dokumen_keseluruhan);
+    $stmt_keseluruhan->execute();
+    $total_dokumen_keseluruhan = $stmt_keseluruhan->get_result()->fetch_assoc()['total_dokumen_keseluruhan'];
 
-    // Menghitung growth
-    if ($total_dokumen_keseluruhan != 0) {
-        $growth_percentage = ($total_dokumen / $total_dokumen_keseluruhan) * 100; // Growth percentage
-    } else {
-        $growth_percentage = 0;  // Menangani jika tidak ada dokumen keseluruhan
-    }
+    // Hitung kontribusi user
+    $growth_percentage = ($total_dokumen_keseluruhan > 0) ? ($total_dokumen / $total_dokumen_keseluruhan) * 100 : 0;
 
-    // Menutup statement
     $stmt_user->close();
     $stmt_dokumen->close();
-    $stmt_dokumen_keseluruhan->close();
-} catch (Exception $e) {
-    // Tangani kesalahan jika terjadi
-    echo "Error: " . $e->getMessage();
-} finally {
-    // Menutup koneksi setelah selesai
+    $stmt_keseluruhan->close();
     $conn->close();
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
 }
 ?>
+
 
 <!doctype html>
 <html
@@ -175,7 +157,7 @@ try {
                                 <div class="card">
                                     <!-- Card -->
                                     <div class="container mt-5">
-                                        <div class="row">
+                                        <div class="row" style="background-color: rgba(191, 191, 191, 0.1); border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); margin-bottom: 20px;">
                                             <div class="col-xxl-6 col-xl-6 col-md-6 mb-4">
                                                 <div class="card-body">
                                                     <h5 class="card-title text-primary mb-3">Selamat Datang <span><?php echo htmlspecialchars($nama_user); ?></span></h5>
@@ -187,7 +169,7 @@ try {
                                                 </div>
                                             </div>
                                             <div class="col-sm-5 text-center text-sm-left">
-                                                <div class="card-body pb-0 px-0 px-md-6">
+                                                <div class="card-body pb-0 px-0 px-md-6" style="margin-right: 50px;">
                                                     <img
                                                         src="../../assetss/img/illustrations/Stu_data.png"
                                                         height="175"
@@ -196,7 +178,7 @@ try {
                                             </div>
 
                                             <div class="col-xxl-6 col-xl-6 col-md-6 mb-4">
-                                                <div class="card shadow-sm border-0 rounded">
+                                                <div class="card shadow-sm border-0 rounded" style="background-color: rgba(0, 43, 91, 0.05); border-radius: 30px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
                                                     <div class="card-body d-flex align-items-center">
                                                         <div class="icon bg-primary text-white rounded-circle p-3">
                                                             <i class="fas fa-cloud-upload-alt"></i>
@@ -211,7 +193,7 @@ try {
 
                                             <!-- Card 2: Total Dokumen Keseluruhan -->
                                             <div class="col-xxl-6 col-xl-6 col-md-6 mb-4">
-                                                <div class="card shadow-sm border-0 rounded">
+                                                <div class="card shadow-sm border-0 rounded" style="background-color: #e6f0ff; border-radius: 30px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
                                                     <div class="card-body d-flex align-items-center">
                                                         <div class="icon bg-warning text-white rounded-circle p-3">
                                                             <i class="fas fa-file-alt"></i>
@@ -225,110 +207,41 @@ try {
                                             </div>
                                         </div>
 
-                                        <div class="row">
+                                        <div class="row" style="background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); margin-bottom: 20px;">
                                             <div class="col-12 mb-4">
-                                                <div class="card shadow-sm border-0 rounded">
+                                                <div class="card shadow-sm border-0 rounded" style="background-color: rgba(191, 191, 191, 0.1); border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); margin-bottom: 20px;">
                                                     <div class="card-body">
-                                                        <!-- Diagram -->
-                                                        <div class="row row-bordered g-0">
-                                                            <div class="col-lg-8">
-                                                                <div class="card">
-                                                                    <div class="card-header d-flex align-items-center justify-content-between">
-                                                                        <div class="card-title mb-0">
-                                                                            <h5 class="m-0 me-2">Total Dokumen dan Total Dokumen Keseluruhan</h5>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="px-3">
-                                                                        <canvas id="dokumenChart" width="350" height="250"></canvas>
-                                                                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                                                                        <script>
-                                                                            var totalDokumen = <?php echo $total_dokumen; ?>;
-                                                                            var totalDokumenKeseluruhan = <?php echo $total_dokumen_keseluruhan; ?>;
-
-                                                                            var ctx = document.getElementById('dokumenChart').getContext('2d');
-                                                                            var dokumenChart = new Chart(ctx, {
-                                                                                type: 'bar',
-                                                                                data: {
-                                                                                    labels: ['Total Dokumen', 'Total Dokumen Keseluruhan'], 
-                                                                                    datasets: [{
-                                                                                        label: 'Dokumen Comparison',
-                                                                                        data: [totalDokumen, totalDokumenKeseluruhan], 
-                                                                                        backgroundColor: [
-                                                                                            'rgba(54, 162, 235, 0.5)',
-                                                                                            'rgba(255, 159, 64, 0.5)' 
-                                                                                        ],
-                                                                                        borderColor: [
-                                                                                            'rgba(54, 162, 235, 1)',
-                                                                                            'rgba(255, 159, 64, 1)'
-                                                                                        ],
-                                                                                        borderWidth: 1
-                                                                                    }]
-                                                                                },
-                                                                                options: {
-                                                                                    responsive: true,
-                                                                                    plugins: {
-                                                                                        legend: {
-                                                                                            position: 'top',
-                                                                                        },
-                                                                                        tooltip: {
-                                                                                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                                                                            titleColor: '#fff',
-                                                                                            bodyColor: '#fff',
-                                                                                            borderColor: '#ddd',
-                                                                                            borderWidth: 1
-                                                                                        }
-                                                                                    },
-                                                                                    scales: {
-                                                                                        y: {
-                                                                                            beginAtZero: true,
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        </script>
+                                                        <!-- Daftar Dokumen Anda -->
+                                                        <div class="row g-3">
+                                                            <!-- Card Dokumen Saya -->
+                                                            <div class="col-md-4">
+                                                                <div class="card shadow-sm border-0 bg-white rounded-4">
+                                                                    <div class="card-body" style="background-color: #e6f0ff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                                                                        <h6 class="text-muted">Dokumen Saya</h6>
+                                                                        <h3 class="fw-bold text-primary"><?= $total_dokumen; ?></h3>
+                                                                        <p class="mb-0 small">User: <strong><?= htmlspecialchars($nama_user); ?></strong></p>
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            <!-- Card for Daftar Dokumen -->
-                                                            <div class="col-lg-4">
-                                                                <div class="card">
-                                                                    <div class="card-body px-xl-9 py-12 d-flex align-items-center flex-column" style="margin-left: 10%;">
-                                                                        <div class="text-center mb-6">
-                                                                            <h5 class="m-0">Daftar Dokumen</h5>
-                                                                        </div>
+                                                            <!-- Card Total Dokumen -->
+                                                            <div class="col-md-4">
+                                                                <div class="card shadow-sm border-0 bg-white rounded-4">
+                                                                    <div class="card-body" style="background-color: #e6f0ff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                                                                        <h6 class="text-muted">Total Dokumen</h6>
+                                                                        <h3 class="fw-bold text-success"><?= $total_dokumen_keseluruhan; ?></h3>
+                                                                        <p class="mb-0 small">Seluruh pengguna</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
 
-                                                                        <!-- Menampilkan daftar dokumen -->
-                                                                        <div class="table-responsive">
-                                                                            <table class="table table-striped">
-                                                                                <thead>
-                                                                                    <tr>
-                                                                                        <th>NIP</th>
-                                                                                        <th>Nama</th>
-                                                                                        <th>Nama Dokumen</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    <?php
-                                                                                    $sql_dokumen_list = "SELECT dokumen.nip, users.nama, dokumen.nama_dokumen 
-                                                FROM dokumen 
-                                                JOIN users ON dokumen.nip = users.nip";
-                                                                                    $result_dokumen_list = $conn->query($sql_dokumen_list);
-                                                                                    if ($result_dokumen_list->num_rows > 0) {
-                                                                                        while ($row = $result_dokumen_list->fetch_assoc()) {
-                                                                                            echo "<tr>
-                                        <td>" . htmlspecialchars($row['nip']) . "</td>
-                                        <td>" . htmlspecialchars($row['nama']) . "</td>
-                                        <td>" . htmlspecialchars($row['nama_dokumen']) . "</td>
-                                    </tr>";
-                                                                                        }
-                                                                                    } else {
-                                                                                        echo "<tr><td colspan='3' class='text-center'>Tidak ada dokumen yang ditemukan</td></tr>";
-                                                                                    }
-                                                                                    ?>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </div>
+                                                            <!-- Card Growth -->
+                                                            <div class="col-md-4">
+                                                                <div class="card shadow-sm border-0 bg-white rounded-4">
+                                                                    <div class="card-body" style="background-color: #e6f0ff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                                                                        <h6 class="text-muted">Kontribusi Saya</h6>
+                                                                        <h3 class="fw-bold text-warning"><?= number_format($growth_percentage, 1); ?>%</h3>
+                                                                        <p class="mb-0 small">Dari total dokumen</p>
                                                                     </div>
                                                                 </div>
                                                             </div>

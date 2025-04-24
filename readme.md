@@ -46,6 +46,14 @@ NIP : HBU21837123
 
 Password: 12345
 
+// Fitur Kirim verifikasi link ke gmail mewajibkan anda login akun google yang sudah kami buat
+
+Email : testwebsite723@gmail.com
+
+Password : Abc12345@
+
+*Note : Akun memakai authentifikasi 2 Faktor, Harap Hubungi Kami Sebelum Login*
+
 Note: Data login ini hanya untuk keperluan demo/test dan dapat diubah melalui database.
 
 ======//=============//=============//=============//=============//=============//=============//=============//

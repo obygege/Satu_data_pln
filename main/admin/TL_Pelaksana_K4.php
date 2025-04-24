@@ -174,10 +174,57 @@ $totalPages = ceil($totalDocs / $perPage);
                                                                             <a href="../../proses/lihat_dokumen.php?id=<?= $doc['id'] ?>" class="btn btn-primary btn-sm">
                                                                                 <i class="fas fa-eye"></i> Lihat
                                                                             </a>
+
                                                                             <!-- Download Button -->
                                                                             <a href="../../proses/download.php?id=<?= $doc['id'] ?>" class="btn btn-success btn-sm">
                                                                                 <i class="fas fa-download"></i> Download
                                                                             </a>
+
+                                                                            <!-- Aktivitas Button -->
+                                                                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#aktivitasModal" onclick="loadAktivitas(<?= $doc['id'] ?>)">
+                                                                                <i class="fas fa-info-circle"></i> Aktivitas
+                                                                            </button>
+
+                                                                            <!-- Pop Up Siapa Saja yang mengakses dokumen -->
+                                                                            <!-- Modal Aktivitas -->
+                                                                            <div class="modal fade" id="aktivitasModal" tabindex="-1" aria-labelledby="aktivitasModalLabel" aria-hidden="true">
+                                                                                <div class="modal-dialog modal-lg">
+                                                                                    <div class="modal-content">
+                                                                                        <div class="modal-header">
+                                                                                            <h5 class="modal-title" id="aktivitasModalLabel">Aktivitas Dokumen</h5>
+                                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                                        </div>
+                                                                                        <div class="modal-body">
+                                                                                            <div id="aktivitasContent">
+                                                                                                <!-- Data aktivitas akan dimuat di sini -->
+                                                                                                <p>Memuat data...</p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <!-- Pop Up Selesai -->
+
+                                                                            <!-- JS Function Pop Up -->
+                                                                            <script>
+                                                                                function loadAktivitas(docId) {
+                                                                                    // Tampilkan loading sementara
+                                                                                    document.getElementById('aktivitasContent').innerHTML = '<p>Memuat data...</p>';
+
+                                                                                    // Gunakan AJAX untuk mendapatkan data aktivitas berdasarkan id dokumen
+                                                                                    var xhr = new XMLHttpRequest();
+                                                                                    xhr.open('GET', 'aktivitas.php?id=' + docId, true);
+                                                                                    xhr.onload = function() {
+                                                                                        if (xhr.status === 200) {
+                                                                                            document.getElementById('aktivitasContent').innerHTML = xhr.responseText;
+                                                                                        } else {
+                                                                                            document.getElementById('aktivitasContent').innerHTML = '<p>Terjadi kesalahan saat memuat data.</p>';
+                                                                                        }
+                                                                                    };
+                                                                                    xhr.send();
+                                                                                }
+                                                                            </script>
+                                                                            <!-- Function End -->
                                                                         </td>
                                                                     </tr>
                                                             <?php
